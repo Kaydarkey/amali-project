@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Page</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/video">Video</a>
+        <a href="/account">Account</a>
+    </nav>
+    <h1>Video Page</h1>
+    <div class="video-container">
+        <video controls>
+            <source src="<%= video.url %>" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="controls">
+            <% if (prevVideo) { %>
+                <a href="/video/<%= prevVideo.id %>">Previous</a>
+            <% } %>
+            <% if (nextVideo) { %>
+                <a href="/video/<%= nextVideo.id %>">Next</a>
+            <% } %>
+        </div>
+    </div>
+    <button class="share">Share</button>
+    <img src="/path/to/logo.png" alt="Business Logo">
+</body>
+</html>
