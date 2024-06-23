@@ -12,7 +12,7 @@ const app = express();
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: '@GODisgreat2002',
     database: 'video_platform'
 });
 
