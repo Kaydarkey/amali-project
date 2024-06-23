@@ -3,6 +3,8 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const session = require('express-session');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const app = express();
 
@@ -10,7 +12,7 @@ const app = express();
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '@GODisgreat2002',
+    password: '',
     database: 'video_platform'
 });
 
@@ -33,6 +35,15 @@ app.use(session({
     saveUninitialized: true
 }));
 
+// Email verification setup
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'your-email@gmail.com',
+        pass: 'your-email-password'
+    }
+});
+
 app.get('/', (req, res) => {
     const username = req.session.username || 'Guest';
     res.render('index', { username });
@@ -40,67 +51,6 @@ app.get('/', (req, res) => {
 
 app.get('/signup', (req, res) => {
     res.render('signup');
-});
-
-app.post('/signup', (req, res) => {
-    const { email, password } = req.body;
-    const query = 'INSERT INTO users (email, password) VALUES (?, ?)';
-    db.query(query, [email, password], (err, result) => {
-        if (err) throw err;
-        res.redirect('/login');
-    });
-});
-
-app.get('/login', (req, res) => {
-    res.render('login');
-});
-
-app.post('/login', (req, res) => {
-    const { email, password } = req.body;
-    const query = 'SELECT * FROM users WHERE email = ? AND password = ?';
-    db.query(query, [email, password], (err, results) => {
-        if (err) throw err;
-        if (results.length > 0) {
-            req.session.username = email;
-            res.redirect('/');
-        } else {
-            res.send('Incorrect email or password');
-        }
-    });
-});
-
-app.get('/video', (req, res) => {
-    if (!req.session.username) {
-        return res.redirect('/login');
-    }
-
-    const videoId = req.query.id || 1;
-    const query = 'SELECT * FROM videos WHERE id = ?';
-    db.query(query, [videoId], (err, results) => {
-        if (err) throw err;
-        const video = results[0];
-        const prevVideo = videoId > 1 ? videoId - 1 : null;
-        const nextVideo = videoId < 10 ? videoId + 1 : null; // Assume 10 videos for simplicity
-        res.render('video', { video, prevVideo, nextVideo });
-    });
-});
-
-app.get('/account', (req, res) => {
-    req.session.destroy();
-    res.redirect('/login');
-});
-
-//email verfication
-const nodemailer = require('nodemailer');
-const crypto = require('crypto');
-
-// Setup Nodemailer
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'your-email@gmail.com',
-        pass: 'your-email-password'
-    }
 });
 
 app.post('/signup', (req, res) => {
@@ -132,7 +82,25 @@ app.get('/verify-email', (req, res) => {
         res.send('Email verified successfully!');
     });
 });
-//password reset
+
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    const query = 'SELECT * FROM users WHERE email = ? AND password = ?';
+    db.query(query, [email, password], (err, results) => {
+        if (err) throw err;
+        if (results.length > 0) {
+            req.session.username = email;
+            res.redirect('/');
+        } else {
+            res.send('Incorrect email or password');
+        }
+    });
+});
+
 app.get('/reset-password', (req, res) => {
     res.render('reset-password');
 });
@@ -172,6 +140,26 @@ app.post('/reset-password-confirm', (req, res) => {
     });
 });
 
+app.get('/video', (req, res) => {
+    if (!req.session.username) {
+        return res.redirect('/login');
+    }
+
+    const videoId = req.query.id || 1;
+    const query = 'SELECT * FROM videos WHERE id = ?';
+    db.query(query, [videoId], (err, results) => {
+        if (err) throw err;
+        const video = results[0];
+        const prevVideo = videoId > 1 ? videoId - 1 : null;
+        const nextVideo = videoId < 10 ? videoId + 1 : null; // Assume 10 videos for simplicity
+        res.render('video', { video, prevVideo, nextVideo });
+    });
+});
+
+app.get('/account', (req, res) => {
+    req.session.destroy();
+    res.redirect('/login');
+});
 
 app.listen(3000, () => {
     console.log('Server started on http://localhost:3000');
